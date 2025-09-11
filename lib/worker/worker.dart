@@ -3,34 +3,44 @@ import 'dart:convert';
 
 class Worker {
   late String location;
+
+  Worker({required this.location}){
+    location = this.location;
+  }
+
   late double temp;
-  late String feelsLike;
+  late String feels_like;
   late String speed;
-  late String deg;
+  late String humidity;
   late String country;
-  late String sunrise;
-  late String sunset;
+  late String icon;
+  late String description;
+
 
   Future<void> getData() async {
-
     var url = Uri.parse(
-        "https://api.openweathermap.org/data/2.5/weather?q=Dhaka&appid=7ab2cdd1d66f834e95acb8363d4930c5&units=metric");
+        "https://api.openweathermap.org/data/2.5/weather?q=$location&appid=7ab2cdd1d66f834e95acb8363d4930c5&units=metric");
 
     http.Response response = await http.get(url);
 
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
 
+      if (data["cod"].toString() != "200") {
+        throw Exception("City not found");
+      }
+
       location   = data["name"];
-      temp       = data["main"]["temp"]-273.15;
-      feelsLike  = data["main"]["feels_like"].toString();
+      temp       = data["main"]["temp"];
+      feels_like = data["main"]["feels_like"].toString();
       speed      = data["wind"]["speed"].toString();
-      deg        = data["wind"]["deg"].toString();
+      humidity   = data["main"]["humidity"].toString();
       country    = data["sys"]["country"];
-      sunrise    = data["sys"]["sunrise"].toString();
-      sunset     = data["sys"]["sunset"].toString();
+      icon       = data["weather"][0]["icon"].toString();
+      description= data["weather"][0]["description"];
     } else {
-      print("Error: ${response.statusCode}");
+      throw Exception("Error: ${response.statusCode}");
     }
   }
+
 }

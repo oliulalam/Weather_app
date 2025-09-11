@@ -12,42 +12,68 @@ class LoadingState extends StatefulWidget {
 class _LoadingStateState extends State<LoadingState> {
   String Loading = "Loading..";
 
-  late String location;
+  late String city;
   late String  temp;
-  late String feelsLike;
+  late String feels_like;
   late String speed;
-  late String deg;
+  late String humidity;
   late String country;
-  late String sunrise;
-  late String sunset;
+  late String icon;
+  late String description;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // argument নেওয়া
+    final Map? search = ModalRoute.of(context)!.settings.arguments as Map?;
+    city = search != null && search["searchText"] != ""
+        ? search["searchText"]
+        : "Dhaka";
+
+    // ডাটা লোড করা
+    ShowData();
+  }
 
   ShowData() async {
-    Worker instance = Worker();
-    await instance.getData();
-    location = instance.location;
-    temp = instance.temp.toString();
-    feelsLike = instance.feelsLike;
-    speed = instance.speed;
-    deg = instance.deg;
-    country = instance.country;
-    sunrise = instance.sunrise;
-    sunset = instance.sunset;
+    try {
+      Worker instance = Worker(location: city);
+      await instance.getData();
 
-    Navigator.pushReplacementNamed(
-      context,
-      '/home',
-      arguments: {
-        "location": location,
-        "temp": temp,
-        "feelsLike": feelsLike,
-        "speed": speed,
-        "deg": deg,
-        "country": country,
-        "sunrise": sunrise,
-        "sunset": sunset,
-      },
-    );
+      temp = instance.temp.toString();
+      feels_like = instance.feels_like;
+      speed = instance.speed;
+      humidity = instance.humidity;
+      country = instance.country;
+      icon = instance.icon;
+      description = instance.description;
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/home',
+        arguments: {
+          "city": city,
+          "temp": temp,
+          "feels_like": feels_like,
+          "speed": speed,
+          "humidity": humidity,
+          "country": country,
+          "icon": icon,
+          "description": description,
+        },
+      );
+    } catch (e) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("City not found. Try again!", style: TextStyle(color: Colors.black),),
+          backgroundColor: Colors.white,
+        ),
+      );
+
+      Navigator.pop(context); // আগের স্ক্রিনে ফেরা
+    }
   }
+
 
   @override
   void initState() {
@@ -57,6 +83,15 @@ class _LoadingStateState extends State<LoadingState> {
 
   @override
   Widget build(BuildContext context) {
+
+    final Map? search = ModalRoute.of(context)!.settings.arguments as Map?;
+
+    if (search != null && search["searchText"] != null && search["searchText"].toString().isNotEmpty) {
+      city = search["searchText"];
+    } else {
+      city = "Dhaka"; // default city
+    }
+
     return Scaffold(
       body: Center(
         child: Column(
